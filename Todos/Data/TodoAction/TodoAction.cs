@@ -33,15 +33,15 @@ public class TodoAction
                 break;
             
             case TodoActionType.NotFound:
-                SetInfo(6, "Invalid State");
+                SetInfo(6, "Item not found");
                 break;
             
             case TodoActionType.IdsNotMatch:
-                SetInfo(7, "Invalid State");
+                SetInfo(7, "IDs don't match");
                 break;
             
             case TodoActionType.AlreadyExists:
-                SetInfo(8, "Invalid State");
+                SetInfo(8, "Item already exists");
                 break;
             
             case TodoActionType.Success:
