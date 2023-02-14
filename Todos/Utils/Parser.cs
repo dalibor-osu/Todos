@@ -15,25 +15,49 @@ public static class Parser
         JsonDocument doc = JsonDocument.Parse(data);
         JsonElement root = doc.RootElement;
 
-        if (!root.TryGetProperty("Id", out JsonElement idElement) || !Guid.TryParse(idElement.ToString(), out Guid id))
+        if (!root.TryGetIdProperty(out Guid id))
             return new TodoAction(TodoActionType.InvalidId);
 
-        if (!root.TryGetProperty("Title", out JsonElement titleElement))
+        if (!root.TryGetStringProperty("Title", out string title))
             return new TodoAction(TodoActionType.InvalidTitle);
-
-        string title = titleElement.ToString();
-
-        if (!root.TryGetProperty("State", out JsonElement stateElement) ||
-            !int.TryParse(stateElement.ToString(), out int state) ||
-            !ValidStates.Contains(state))
+        
+        if (!root.TryGetStateProperty(out int state))
             return new TodoAction(TodoActionType.InvalidState);
 
-        if (!root.TryGetProperty("Content", out JsonElement contentElement))
+        if (!root.TryGetStringProperty("Content", out string content))
             return new TodoAction(TodoActionType.InvalidContent);
-
-        string content = contentElement.ToString();
-
+            
         item = new TodoItem(id, title, state, content);
         return new TodoAction(TodoActionType.Success);
+    }
+
+    private static bool TryGetIdProperty(this JsonElement rootElement, out Guid id)
+    {
+        if (rootElement.TryGetProperty("Id", out JsonElement idElement) &&
+            Guid.TryParse(idElement.ToString(), out id)) return true;
+        
+        id = Guid.Empty;
+        return false;
+    }
+    private static bool TryGetStateProperty(this JsonElement rootElement, out int state)
+    {
+        if (rootElement.TryGetProperty("State", out JsonElement stateElement) &&
+            int.TryParse(stateElement.ToString(), out state) &&
+            ValidStates.Contains(state)) return true;
+        
+        state = 0;
+        return false;
+
+    }
+    private static bool TryGetStringProperty(this JsonElement rootElement, string propertyName, out string value)
+    {
+        if (!rootElement.TryGetProperty(propertyName, out JsonElement element))
+        {
+            value = "";
+            return false;
+        }
+
+        value = element.ToString();
+        return true;
     }
 }
