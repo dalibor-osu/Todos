@@ -6,7 +6,7 @@ namespace Todos.Database;
 public class DatabaseHandler
 {
     private const string ConnectionQuery = "Data Source=./Database/database.db";
-    private SqliteConnection _connection;
+    private readonly SqliteConnection _connection;
 
     public DatabaseHandler()
     {
@@ -35,7 +35,7 @@ public class DatabaseHandler
     public DatabaseActionResult GetSingleItem(Guid guid, ref TodoItem? item)
     {
         _connection.Open();
-        
+
         if (!ItemExists(guid))
         {
             _connection.Close();
@@ -48,27 +48,27 @@ public class DatabaseHandler
 
         reader.Read();
         item = GetItemFromReader(reader);
-        
+
         _connection.Close();
-        
+
         return DatabaseActionResult.Success;
     }
 
     public DatabaseActionResult UpdateItem(TodoItem? item)
     {
         _connection.Open();
-        
+
         if (item == null || !ItemExists(item.Id))
         {
             _connection.Close();
             return DatabaseActionResult.NotFound;
         }
 
-        string query = $"UPDATE todos SET title = @title, state = @state, content = @content WHERE id = @id";
+        string query = "UPDATE todos SET title = @title, state = @state, content = @content WHERE id = @id";
         SqliteCommand command = CreateCommand(query);
         PrepareStatement(item, ref command);
         command.ExecuteNonQuery();
-        
+
         _connection.Close();
 
         return DatabaseActionResult.Success;
@@ -84,20 +84,20 @@ public class DatabaseHandler
             return DatabaseActionResult.AlreadyExists;
         }
 
-        string query = $"INSERT INTO todos VALUES (@id, @title, @state, @content);";
+        string query = "INSERT INTO todos VALUES (@id, @title, @state, @content);";
         SqliteCommand command = CreateCommand(query);
         PrepareStatement(item, ref command);
         command.ExecuteNonQuery();
-        
+
         _connection.Close();
-        
+
         return DatabaseActionResult.Success;
     }
 
     public DatabaseActionResult DeleteItem(Guid id)
     {
         _connection.Open();
-        
+
         if (!ItemExists(id))
         {
             _connection.Close();
@@ -107,9 +107,9 @@ public class DatabaseHandler
         string query = $"DELETE FROM todos WHERE id = \"{id}\";";
         SqliteCommand command = CreateCommand(query);
         command.ExecuteNonQuery();
-        
+
         _connection.Close();
-        
+
         return DatabaseActionResult.Success;
     }
 
@@ -126,9 +126,10 @@ public class DatabaseHandler
         string title = reader.GetString(1);
         int state = reader.GetInt32(2);
         string content = reader.GetString(3);
-        
+
         return new TodoItem(id, title, state, content);
     }
+
     private bool ItemExists(Guid id)
     {
         string query = $"SELECT COUNT(*) FROM todos WHERE id = \"{id}\";";
@@ -137,6 +138,7 @@ public class DatabaseHandler
 
         return count > 0;
     }
+
     private void PrepareStatement(TodoItem? item, ref SqliteCommand command)
     {
         command.Parameters.AddWithValue("@id", item.Id.ToString());
